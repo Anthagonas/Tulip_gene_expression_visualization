@@ -94,7 +94,7 @@ def main(graph):
   viewTexture = graph.getStringProperty("viewTexture")
   viewTgtAnchorShape = graph.getIntegerProperty("viewTgtAnchorShape")
   viewTgtAnchorSize = graph.getSizeProperty("viewTgtAnchorSize")
-  baseSize= tlp.Size(10.0,10.0,10.0)
+  baseSize= tlp.Size(10.0,3.0,0.)
   deplacements = {}
   updateVisualization(centerViews = True)
   placerNodes(graph, viewLayout, "FM^3 (OGDF)")
