@@ -14,6 +14,8 @@
 #   * Ctrl + Space  : show auto-completion dialog.
 
 from tulip import tlp
+from math import *
+from random import *
 
 # The updateVisualization(centerViews = True) function can be called
 # during script execution to update the opened views
@@ -28,6 +30,7 @@ from tulip import tlp
 # The main(graph) function must be defined 
 # to run the script on the current graph
 
+#coloration et mise en forme des arretes et nodes
 def EdgesNodesColors(graph, n, pos, neg, color, shape, size, tgtShape, tgtSize):
   color[n] = tlp.Color.Azure
   shape[n] = tlp.NodeShape.Sphere
@@ -48,7 +51,10 @@ def EdgesNodesColors(graph, n, pos, neg, color, shape, size, tgtShape, tgtSize):
         tgtSize[e] = size
       else: #aucune regulation
         color[e] = tlp.Color.Black
-  
+
+def placerNodes(graph,layout,force="FM^3 (OGDF)"):
+  param={"Unit edge length":100}
+  graph.applyLayoutAlgorithm(force,layout,param)
 
 def main(graph): 
   Locus = graph.getStringProperty("Locus")
@@ -93,12 +99,16 @@ def main(graph):
   viewTexture = graph.getStringProperty("viewTexture")
   viewTgtAnchorShape = graph.getIntegerProperty("viewTgtAnchorShape")
   viewTgtAnchorSize = graph.getSizeProperty("viewTgtAnchorSize")
-  baseSize= tlp.Size(100.0,100.0,100.0)
+  baseSize= tlp.Size(300.0,300.0,300.0)
+  deplacements = {}
   updateVisualization(centerViews = True)
-
+  
+  placementInitial(graph,viewLayout)
 
   for n in graph.getNodes():
     viewLabel[n] = Locus[n]
     viewSize[n] = baseSize * (graph.deg(n)+1)
     EdgesNodesColors(graph, n, Positive, Negative, viewColor, 
-    viewShape, viewSize[n]/2 , viewTgtAnchorShape, viewTgtAnchorSize)
+    viewShape, viewSize[n]*10 , viewTgtAnchorShape, viewSize)
+  viewTgtAnchorSize.setValueToGraphEdges(tlp.Size(1000.,1000.,1000.), graph)
+  placerNodes(graph, viewLayout, "FM^3 (OGDF)")
