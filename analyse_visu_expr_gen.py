@@ -33,27 +33,23 @@ from random import *
 #coloration et mise en forme des arretes et nodes
 def EdgesNodesColors(graph, n, pos, neg, color, shape, size, tgtShape, tgtSize):
   color[n] = tlp.Color.Azure
-  shape[n] = tlp.NodeShape.Sphere
-  for e in graph.getOutEdges(n):
+  for e in graph.getInEdges(n):
     if pos[e]:
       if neg[e]: #regulation positive et négative
-        color[e] = tlp.Color.MagentaRose
+        color[e] = tlp.Color.Black
         tgtShape[e] = tlp.EdgeExtremityShape.Diamond
-        tgtSize[e] = size
       else: #regulation positive sur le node n
         color[e] = tlp.Color.Green
         tgtShape[e] = tlp.EdgeExtremityShape.Arrow
-        tgtSize[e] = size
     else:
       if neg[e]: #regulation negative sur le node n
         color[e] = tlp.Color.Red
         tgtShape[e] = tlp.EdgeExtremityShape.Cross
-        tgtSize[e] = size
       else: #aucune regulation
         color[e] = tlp.Color.Black
 
 def placerNodes(graph,layout,force="FM^3 (OGDF)"):
-  param={"Unit edge length":100}
+  param={"Unit edge length":2}
   graph.applyLayoutAlgorithm(force,layout,param)
 
 def main(graph): 
@@ -99,16 +95,15 @@ def main(graph):
   viewTexture = graph.getStringProperty("viewTexture")
   viewTgtAnchorShape = graph.getIntegerProperty("viewTgtAnchorShape")
   viewTgtAnchorSize = graph.getSizeProperty("viewTgtAnchorSize")
-  baseSize= tlp.Size(300.0,300.0,300.0)
+  baseSize= tlp.Size(10.0,10.0,10.0)
   deplacements = {}
   updateVisualization(centerViews = True)
   
   placementInitial(graph,viewLayout)
+  placerNodes(graph, viewLayout, "FM^3 (OGDF)")
 
   for n in graph.getNodes():
     viewLabel[n] = Locus[n]
-    viewSize[n] = baseSize * (graph.deg(n)+1)
+    viewSize[n] = baseSize #* (graph.deg(n)+1)
     EdgesNodesColors(graph, n, Positive, Negative, viewColor, 
-    viewShape, viewSize[n]*10 , viewTgtAnchorShape, viewSize)
-  viewTgtAnchorSize.setValueToGraphEdges(tlp.Size(1000.,1000.,1000.), graph)
-  placerNodes(graph, viewLayout, "FM^3 (OGDF)")
+    viewShape, viewSize[n] , viewTgtAnchorShape, viewSize)
