@@ -29,6 +29,11 @@ from random import *
 
 # The main(graph) function must be defined 
 # to run the script on the current graph
+BASESIZE=10
+
+def labelAndSizeNode(lab,locus,size,viewSize):
+    lab = locus
+    viewSize = tlp.Size(size,size*0.2,0.) #* (graph.deg(n)+1)
 
 def EdgesNodesColors(graph, n, pos, neg, color, shape, tgtShape):
   color[n] = tlp.Color.Azure
@@ -94,13 +99,11 @@ def main(graph):
   viewTexture = graph.getStringProperty("viewTexture")
   viewTgtAnchorShape = graph.getIntegerProperty("viewTgtAnchorShape")
   viewTgtAnchorSize = graph.getSizeProperty("viewTgtAnchorSize")
-  baseSize= tlp.Size(10.0,3.0,0.)
   deplacements = {}
   updateVisualization(centerViews = True)
   placerNodes(graph, viewLayout, "FM^3 (OGDF)")
 
   for n in graph.getNodes():
-    viewLabel[n] = Locus[n]
-    viewSize[n] = baseSize #* (graph.deg(n)+1)
+    labelAndSizeNode(viewLabel[n],Locus[n],BASESIZE,viewSize[n])
     EdgesNodesColors(graph, n, Positive, Negative, viewColor, 
     viewShape, viewTgtAnchorShape)
