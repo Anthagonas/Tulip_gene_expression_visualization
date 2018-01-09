@@ -30,8 +30,7 @@ from random import *
 # The main(graph) function must be defined 
 # to run the script on the current graph
 
-#coloration et mise en forme des arretes et nodes
-def EdgesNodesColors(graph, n, pos, neg, color, shape, size, tgtShape, tgtSize):
+def EdgesNodesColors(graph, n, pos, neg, color, shape, tgtShape):
   color[n] = tlp.Color.Azure
   for e in graph.getInEdges(n):
     if pos[e]:
@@ -98,12 +97,10 @@ def main(graph):
   baseSize= tlp.Size(10.0,10.0,10.0)
   deplacements = {}
   updateVisualization(centerViews = True)
-  
-  placementInitial(graph,viewLayout)
   placerNodes(graph, viewLayout, "FM^3 (OGDF)")
 
   for n in graph.getNodes():
     viewLabel[n] = Locus[n]
     viewSize[n] = baseSize #* (graph.deg(n)+1)
     EdgesNodesColors(graph, n, Positive, Negative, viewColor, 
-    viewShape, viewSize[n] , viewTgtAnchorShape, viewSize)
+    viewShape, viewTgtAnchorShape)

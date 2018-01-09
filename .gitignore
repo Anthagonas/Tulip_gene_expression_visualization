@@ -97,3 +97,4 @@ ENV/
 
 # mypy
 .mypy_cache/
+analyse_visu_expr_gen.py
