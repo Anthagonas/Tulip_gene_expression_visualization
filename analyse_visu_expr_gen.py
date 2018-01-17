@@ -31,9 +31,9 @@ from random import *
 # to run the script on the current graph
 BASESIZE=10
 
-def labelAndSizeNode(lab,locus,size,viewSize):
-    lab = locus
-    viewSize = tlp.Size(size,size*0.2,0.) #* (graph.deg(n)+1)
+def labelAndSizeNode(lab,locus,size,viewSize,node):
+    lab[node] = locus[node]
+    viewSize[node] = tlp.Size(size,size*0.2,0.) #* (graph.deg(n)+1)
 
 def EdgesNodesColors(graph, n, pos, neg, color, shape, tgtShape):
   color[n] = tlp.Color.Azure
@@ -104,6 +104,6 @@ def main(graph):
   placerNodes(graph, viewLayout, "FM^3 (OGDF)")
 
   for n in graph.getNodes():
-    labelAndSizeNode(viewLabel[n],Locus[n],BASESIZE,viewSize[n])
+    labelAndSizeNode(viewLabel,Locus,BASESIZE,viewSize,n)
     EdgesNodesColors(graph, n, Positive, Negative, viewColor, 
     viewShape, viewTgtAnchorShape)
