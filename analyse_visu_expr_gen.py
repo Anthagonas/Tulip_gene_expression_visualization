@@ -31,11 +31,12 @@ from random import *
 # to run the script on the current graph
 BASESIZE=10
 
-def labelAndSizeNode(lab,locus,size,viewSize,node):
-    lab[node] = locus[node]
-    viewSize[node] = tlp.Size(size,size*0.2,0.) #* (graph.deg(n)+1)
+#PARTIE 1 : fonctions
+def setNodeLabelAndSize(lab,locus,size,viewSize,node):
+  lab[node] = locus[node]
+  viewSize[node] = tlp.Size(size,size*0.2,0.) #* (graph.deg(n)+1)
 
-def EdgesNodesColors(graph, n, pos, neg, color, shape, tgtShape):
+def setEdgesNodesColors(graph, n, pos, neg, color, shape, tgtShape):
   color[n] = tlp.Color.Azure
   for e in graph.getInEdges(n):
     if pos[e]:
@@ -52,10 +53,20 @@ def EdgesNodesColors(graph, n, pos, neg, color, shape, tgtShape):
       else: #aucune regulation
         color[e] = tlp.Color.Black
 
-def placerNodes(graph,layout,force="FM^3 (OGDF)"):
+def applyForce(graph,layout,force="FM^3 (OGDF)"):
   param={"Unit edge length":2}
   graph.applyLayoutAlgorithm(force,layout,param)
+  
+#PARTIE 2 : fonctions
+def setEdgesSize(graph,n,size):
+  for e in graph.getInEdges(n):
+    tp_mean = 0
+    for i in range(1,18):
+      tp_mean += graph.getDoubleProperty("tp{} s".format(i))[n]
+    tp_mean /= 17
+    size[e] = tlp.Size(tp_mean,tp_mean,0.)
 
+#MAIN
 def main(graph): 
   Locus = graph.getStringProperty("Locus")
   Negative = graph.getBooleanProperty("Negative")
@@ -101,14 +112,17 @@ def main(graph):
   viewTgtAnchorSize = graph.getSizeProperty("viewTgtAnchorSize")
   deplacements = {}
   updateVisualization(centerViews = True)
-  placerNodes(graph, viewLayout, "FM^3 (OGDF)")
   
   #PARTIE 1
+  applyForce(graph, viewLayout, "FM^3 (OGDF)")  
   for n in graph.getNodes():
-    labelAndSizeNode(viewLabel,Locus,BASESIZE,viewSize,n)
-    EdgesNodesColors(graph, n, Positive, Negative, viewColor, 
+    setNodeLabelAndSize(viewLabel,Locus,BASESIZE,viewSize,n)
+    setEdgesNodesColors(graph, n, Positive, Negative, viewColor, 
     viewShape, viewTgtAnchorShape)
   
   #PARTIE 2
   graphCopy = tlp.newGraph()
-  copyToGraph(graphCopy, graph)
+  viewSizeCopy = graphCopy.getSizeProperty("viewSize")
+  tlp.copyToGraph(graphCopy, graph)
+  for n in graphCopy.getNodes():
+    setEdgesSize(graphCopy,n,viewSizeCopy)
