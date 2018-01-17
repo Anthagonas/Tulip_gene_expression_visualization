@@ -102,8 +102,13 @@ def main(graph):
   deplacements = {}
   updateVisualization(centerViews = True)
   placerNodes(graph, viewLayout, "FM^3 (OGDF)")
-
+  
+  #PARTIE 1
   for n in graph.getNodes():
     labelAndSizeNode(viewLabel,Locus,BASESIZE,viewSize,n)
     EdgesNodesColors(graph, n, Positive, Negative, viewColor, 
     viewShape, viewTgtAnchorShape)
+  
+  #PARTIE 2
+  graphCopy = tlp.newGraph()
+  copyToGraph(graphCopy, graph)
