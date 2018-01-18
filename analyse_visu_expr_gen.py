@@ -58,13 +58,17 @@ def applyForce(graph,layout,force="FM^3 (OGDF)"):
   graph.applyLayoutAlgorithm(force,layout,param)
   
 #PARTIE 2 : fonctions
-def setEdgesSize(graph,n,size):
-  for e in graph.getInEdges(n):
-    tp_mean = 0
-    for i in range(1,18):
-      tp_mean += graph.getDoubleProperty("tp{} s".format(i))[n]
-    tp_mean /= 17
-    size[e] = tlp.Size(tp_mean,tp_mean,0.)
+def getMeanExpression(graph,n):  
+  tp_mean = 0
+  for i in range(1,18):
+    tp_mean += graph.getDoubleProperty("tp{} s".format(i))[n]
+  tp_mean /= 17
+  return tp_mean
+
+def setEdgesWeight(graph,n,weight):  
+  for e in graph.getOutEdges(n):
+    weight.setEdgeValue(e,abs(getMeanExpression(graph,n)-getMeanExpression(graph,graph.target(e))))
+
 
 #MAIN
 def main(graph): 
@@ -121,8 +125,8 @@ def main(graph):
     viewShape, viewTgtAnchorShape)
   
   #PARTIE 2
-  graphCopy = tlp.newGraph()
-  viewSizeCopy = graphCopy.getSizeProperty("viewSize")
-  tlp.copyToGraph(graphCopy, graph)
+  graphCopy = graph.addCloneSubGraph("clone")
+  poids = graphCopy.getDoubleProperty("poids");
+  poids.setAllEdgeValue(0.,graphCopy);
   for n in graphCopy.getNodes():
-    setEdgesSize(graphCopy,n,viewSizeCopy)
+    setEdgesWeight(graphCopy,n,poids)
