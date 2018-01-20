@@ -30,6 +30,7 @@ from random import *
 # The main(graph) function must be defined 
 # to run the script on the current graph
 BASESIZE=10
+EDGE_THRESHOLD=10
 
 #PARTIE 1 : fonctions
 def setNodeLabelAndSize(lab,locus,size,viewSize,node):
@@ -125,8 +126,15 @@ def main(graph):
     viewShape, viewTgtAnchorShape)
   
   #PARTIE 2
-  graphCopy = graph.addCloneSubGraph("clone")
+  #creation du nouveau graphe
+  graphCopy = graph.addCloneSubGraph("partitionnement")
   poids = graphCopy.getDoubleProperty("poids");
   poids.setAllEdgeValue(0.,graphCopy);
   for n in graphCopy.getNodes():
     setEdgesWeight(graphCopy,n,poids)
+  #suppression des arretes
+  for e in graphCopy.getEdges():
+    if poids[e] >= EDGE_THRESHOLD :
+      graphCopy.delEdge(e)
+  #clustering
+  
