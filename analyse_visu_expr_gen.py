@@ -30,7 +30,7 @@ from random import *
 # The main(graph) function must be defined 
 # to run the script on the current graph
 BASESIZE=10
-EDGE_THRESHOLD=10
+EDGE_THRESHOLD=1.5
 
 #PARTIE 1 : fonctions
 def setNodeLabelAndSize(lab,locus,size,viewSize,node):
@@ -137,4 +137,7 @@ def main(graph):
     if poids[e] >= EDGE_THRESHOLD :
       graphCopy.delEdge(e)
   #clustering
-  
+  params = tlp.getDefaultPluginParameters('Louvain', graphCopy)
+  params["metric"]=poids
+  clusterValue = graphCopy.getDoubleProperty('clusterValue')
+  success = graphCopy.applyDoubleAlgorithm('Louvain', clusterValue, params)
