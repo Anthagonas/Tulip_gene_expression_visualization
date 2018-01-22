@@ -29,7 +29,7 @@ from math import *
 # The main(graph) function must be defined 
 # to run the script on the current graph
 BASESIZE=1
-EDGE_THRESHOLD=1.5
+EDGE_THRESHOLD=0.5
 
 #PARTIE 1 : fonctions
 def setNodeLabelAndSize(lab,locus,size,viewSize,node):
@@ -108,9 +108,9 @@ def getPearsonValue(graph,nX,nY):
     return 0.0
   return val_XY / ( sqrt(val_X_squared) * sqrt(val_Y_squared) )
 
-def setEdgesWeight(graph,n,weight):  
-  for e in graph.getOutEdges(n):
-    weight.setEdgeValue(e,getPearsonValue(graph,n,graph.target(e)))
+def setEdgesWeight(graph,n,other,poids):
+  poids[graph.addEdge(n,other)]= getPearsonValue(graph,n,other)
+  
 
 
 #MAIN
@@ -167,19 +167,24 @@ def main(graph):
     viewShape, viewTgtAnchorShape)
   
   #PARTIE 2
-  #creation du nouveau graphe
+  #creation du nouveau graphe  
   graphCopy = graph.addCloneSubGraph("partitionnement")
-  #ajout des poids des arretes
+  graphCopy.delEdges(graphCopy.getEdges())
+  nodeList = graphCopy.nodes()
+  #ajout des poids des arretes  
   poids = graphCopy.getDoubleProperty("poids");
-  poids.setAllEdgeValue(0.,graphCopy);
-  for n in graphCopy.getNodes():
-    setEdgesWeight(graphCopy,n,poids)
+  for i in range(len(nodeList)):
+    for j in range(len(nodeList[i+1::])):
+      setEdgesWeight(graphCopy,nodeList[i],nodeList[j],poids)
   #suppression des arretes "superflues"
   for e in graphCopy.getEdges():
-    if poids[e] >= EDGE_THRESHOLD :
+    poids[e] = 1-poids[e] #placing values between 0 and 2
+    """
+    if poids[e] <= EDGE_THRESHOLD or poids[e] >= -EDGE_THRESHOLD :
       graphCopy.delEdge(e)
-  #clustering
-  params = tlp.getDefaultPluginParameters('Louvain', graphCopy)
-  params["metric"]=poids
+      """
+  #clustering  
+  params = tlp.getDefaultPluginParameters('MCL Clustering', graphCopy)
+  params["weights"]=poids
   clusterValue = graphCopy.getDoubleProperty('clusterValue')
-  success = graphCopy.applyDoubleAlgorithm('Louvain', clusterValue, params)
+  success = graphCopy.applyDoubleAlgorithm('MCL Clustering', clusterValue, params)
