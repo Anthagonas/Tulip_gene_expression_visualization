@@ -15,7 +15,6 @@
 
 from tulip import tlp
 from math import *
-from random import *
 
 # The updateVisualization(centerViews = True) function can be called
 # during script execution to update the opened views
@@ -29,7 +28,7 @@ from random import *
 
 # The main(graph) function must be defined 
 # to run the script on the current graph
-BASESIZE=10
+BASESIZE=1
 EDGE_THRESHOLD=1.5
 
 #PARTIE 1 : fonctions
@@ -55,20 +54,63 @@ def setEdgesNodesColors(graph, n, pos, neg, color, shape, tgtShape):
         color[e] = tlp.Color.Black
 
 def applyForce(graph,layout,force="FM^3 (OGDF)"):
-  param={"Unit edge length":2}
+  param={"Unit edge length":1}
   graph.applyLayoutAlgorithm(force,layout,param)
   
 #PARTIE 2 : fonctions
+def getExpressionXY(graph,nX,nY,mean_X,mean_Y):  
+  """
+  Returns the value of " sum( val_X * val_Y) " (@see getPearsonValue formula )
+  """
+  temp = 0.0
+  for i in range(1,18):
+    temp += (graph.getDoubleProperty("tp{} s".format(i))[nX] - mean_X) * (graph.getDoubleProperty("tp{} s".format(i))[nY] - mean_Y)
+  return temp
+
+def getSquaredValue(graph,n,mean):
+  """
+  Returns " sum( val_N²) ", N being either the X or Y node values (@see getPearsonValue)
+  """
+  temp = 0.0
+  for i in range(1,18):
+    temp += pow(graph.getDoubleProperty("tp{} s".format(i))[n] - mean,2)
+  return temp
+
 def getMeanExpression(graph,n):  
-  tp_mean = 0
+  """
+  Returns the mean of the expression levels from a given gene
+  """
+  tp_mean = 0.0
   for i in range(1,18):
     tp_mean += graph.getDoubleProperty("tp{} s".format(i))[n]
-  tp_mean /= 17
+  tp_mean /= 17.0
   return tp_mean
+  
+def getPearsonValue(graph,nX,nY):
+  """
+  Pearson correlation inspired from https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
+  The formula used for the pearson correlation is the following : 
+  P = sum( val_X * val_Y ) / sqrt( sum(val_X²) )* sqrt( sum(val_Y²) )
+  where : 
+    i is the considered time point ( from 1 to 17 )
+    val_X = x[i] - mean(x)
+    x[i] being the Expression value of X for the time point i
+    mean(x) being the mean of all expression levels for x
+    analogously for val_Y with Y instead of X
+    sum() is the sum of given value for each i betwen 1 and 17
+  """
+  mean_X = getMeanExpression(graph,nX)
+  mean_Y = getMeanExpression(graph,nY)
+  val_XY = getExpressionXY(graph,nX,nY,mean_X,mean_Y)
+  val_X_squared = getSquaredValue(graph,nX,mean_X)
+  val_Y_squared = getSquaredValue(graph,nY,mean_Y)
+  if val_X_squared == 0.0 or val_Y_squared == 0.0 :
+    return 0.0
+  return val_XY / ( sqrt(val_X_squared) * sqrt(val_Y_squared) )
 
 def setEdgesWeight(graph,n,weight):  
   for e in graph.getOutEdges(n):
-    weight.setEdgeValue(e,abs(getMeanExpression(graph,n)-getMeanExpression(graph,graph.target(e))))
+    weight.setEdgeValue(e,getPearsonValue(graph,n,graph.target(e)))
 
 
 #MAIN
@@ -115,11 +157,10 @@ def main(graph):
   viewTexture = graph.getStringProperty("viewTexture")
   viewTgtAnchorShape = graph.getIntegerProperty("viewTgtAnchorShape")
   viewTgtAnchorSize = graph.getSizeProperty("viewTgtAnchorSize")
-  deplacements = {}
   updateVisualization(centerViews = True)
   
   #PARTIE 1
-  applyForce(graph, viewLayout, "FM^3 (OGDF)")  
+  applyForce(graph, viewLayout, "FM^3 (OGDF)")
   for n in graph.getNodes():
     setNodeLabelAndSize(viewLabel,Locus,BASESIZE,viewSize,n)
     setEdgesNodesColors(graph, n, Positive, Negative, viewColor, 
@@ -128,11 +169,12 @@ def main(graph):
   #PARTIE 2
   #creation du nouveau graphe
   graphCopy = graph.addCloneSubGraph("partitionnement")
+  #ajout des poids des arretes
   poids = graphCopy.getDoubleProperty("poids");
   poids.setAllEdgeValue(0.,graphCopy);
   for n in graphCopy.getNodes():
     setEdgesWeight(graphCopy,n,poids)
-  #suppression des arretes
+  #suppression des arretes "superflues"
   for e in graphCopy.getEdges():
     if poids[e] >= EDGE_THRESHOLD :
       graphCopy.delEdge(e)
