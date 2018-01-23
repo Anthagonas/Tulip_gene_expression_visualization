@@ -28,8 +28,8 @@ from math import *
 
 # The main(graph) function must be defined 
 # to run the script on the current graph
-BASESIZE=1
-EDGE_THRESHOLD=0.5
+BASESIZE=1.0
+EDGE_THRESHOLD=1.0
 
 #PARTIE 1 : fonctions
 def setNodeLabelAndSize(lab,locus,size,viewSize,node):
@@ -111,7 +111,14 @@ def getPearsonValue(graph,nX,nY):
 def setEdgesWeight(graph,n,other,poids):
   poids[graph.addEdge(n,other)]= getPearsonValue(graph,n,other)
   
-
+#PARTIE 3 : fonction 
+def placeHeatMapLine(graph,nodeList,n,size,layout,color):
+  for i in range(1,18):
+    node = graph.addNode()
+    size[node] = tlp.Size(1.,1.,0.)
+    layout[node] = tlp.Coord(i,n,0.)
+    color[node] = tlp.Color(0,graph.getDoubleProperty("tp{} s".format(i))[nodeList[n]],0)
+  
 
 #MAIN
 def main(graph): 
@@ -166,6 +173,7 @@ def main(graph):
     setEdgesNodesColors(graph, n, Positive, Negative, viewColor, 
     viewShape, viewTgtAnchorShape)
   
+  """
   #PARTIE 2
   #creation du nouveau graphe  
   graphCopy = graph.addCloneSubGraph("partitionnement")
@@ -179,12 +187,26 @@ def main(graph):
   #suppression des arretes "superflues"
   for e in graphCopy.getEdges():
     poids[e] = 1-poids[e] #placing values between 0 and 2
-    """
-    if poids[e] <= EDGE_THRESHOLD or poids[e] >= -EDGE_THRESHOLD :
+    if poids[e] > 0.5 and poids[e] < 1.5:
       graphCopy.delEdge(e)
-      """
   #clustering  
   params = tlp.getDefaultPluginParameters('MCL Clustering', graphCopy)
   params["weights"]=poids
   clusterValue = graphCopy.getDoubleProperty('clusterValue')
   success = graphCopy.applyDoubleAlgorithm('MCL Clustering', clusterValue, params)
+  """
+  
+  #PARTIE 3
+  #creation d'un nouveau graphe pour la heatmap
+  graphHeat = graph.addCloneSubGraph("heat map")
+  graphHeat.delEdges(graphHeat.getEdges())
+  nodeList = graphHeat.nodes()
+  layoutHeat = graphHeat.getLayoutProperty("viewLayout")
+  sizeHeat = graphHeat.getSizeProperty("viewSize")
+  colorHeat = graphHeat.getColorProperty("viewColor")
+  for n in range(len(nodeList)):
+    sizeHeat[nodeList[n]] = tlp.Size(1.,1.,0.)
+    layoutHeat[nodeList[n]] = tlp.Coord(0.,n,0.)
+    colorHeat[nodeList[n]] = tlp.Color(255,255,255)
+    placeHeatMapLine(graphHeat,nodeList,n,sizeHeat,layoutHeat,colorHeat)
+  
