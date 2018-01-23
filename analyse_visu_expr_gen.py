@@ -112,12 +112,12 @@ def setEdgesWeight(graph,n,other,poids):
   poids[graph.addEdge(n,other)]= getPearsonValue(graph,n,other)
   
 #PARTIE 3 : fonction 
-def placeHeatMapLine(graph,nodeList,n,size,layout,color):
+def placeHeatMapLine(graph,nodeList,n,size,layout,metric):
   for i in range(1,18):
     node = graph.addNode()
     size[node] = tlp.Size(1.,1.,0.)
     layout[node] = tlp.Coord(i,n,0.)
-    color[node] = tlp.Color(0,graph.getDoubleProperty("tp{} s".format(i))[nodeList[n]],0)
+    metric[node] = graph.getDoubleProperty("tp{} s".format(i))[nodeList[n]]
   
 
 #MAIN
@@ -204,9 +204,13 @@ def main(graph):
   layoutHeat = graphHeat.getLayoutProperty("viewLayout")
   sizeHeat = graphHeat.getSizeProperty("viewSize")
   colorHeat = graphHeat.getColorProperty("viewColor")
+  metricHeat = graphHeat.getDoubleProperty("viewMetric")
+  levelHeat = graphHeat.getDoubleProperty("Expression Level")
   for n in range(len(nodeList)):
     sizeHeat[nodeList[n]] = tlp.Size(1.,1.,0.)
     layoutHeat[nodeList[n]] = tlp.Coord(0.,n,0.)
+    placeHeatMapLine(graphHeat,nodeList,n,sizeHeat,layoutHeat,levelHeat)
+    
+  for n in range(len(nodeList)):
     colorHeat[nodeList[n]] = tlp.Color(255,255,255)
-    placeHeatMapLine(graphHeat,nodeList,n,sizeHeat,layoutHeat,colorHeat)
   
