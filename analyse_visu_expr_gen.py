@@ -132,10 +132,13 @@ def placeGeneLabel(gr,pos,nodeList):
   size = gr.getSizeProperty('viewSize')
   layout = gr.getLayoutProperty('viewLayout')
   color = gr.getColorProperty('viewColor')
-  gr.addNode(nodeList[pos])
-  size[nodeList[pos]] = tlp.Size(1.,1.,0.)
-  layout[nodeList[pos]] = tlp.Coord(0.,pos,0.)
-  color[nodeList[pos]] = tlp.Color(255,255,255)
+  label = gr.getStringProperty("viewLabel")
+  #Creation d'un node "légende"
+  new_node = gr.addNode()
+  size[new_node] = tlp.Size(1.,1.,0.)
+  layout[new_node] = tlp.Coord(0.,pos,0.)
+  color[new_node] = tlp.Color(255,255,255)
+  label[new_node] = label[nodeList[pos]]
   
 
 #MAIN
@@ -206,14 +209,14 @@ def main(graph):
   #ajout des poids des arretes  
   print("Calcul du poids des arretes")
   poids = graphCopy.getDoubleProperty("poids");
-  for i in range(len(nodeList)):
-    for j in range(len(nodeList[i+1::])):
+  for i in range(len(nodeList[::10])):
+    for j in range(len(nodeList[i+10::10])):
       setEdgesWeight(graphCopy,nodeList[i],nodeList[j],poids)
   #suppression des arretes "superflues"
   print("Selection des arretes d'interet")
   for e in graphCopy.getEdges():
-    poids[e] = 1-poids[e] #placement des valeurs de correlations entre 0 et 2 ( 0 = forte correlation positive, 1 = abs de correlation, 2 = forte correlation negative)
-    if poids[e] > 1-EDGE_THRESHOLD and poids[e] < 1+EDGE_THRESHOLD: #Selection des arretes "d'interet" (dont la correlation est pertinente)
+    #poids[e] = 1-poids[e] #placement des valeurs de correlations entre 0 et 2 ( 0 = forte correlation positive, 1 = abs de correlation, 2 = forte correlation negative)
+    if poids[e] > 0-EDGE_THRESHOLD and poids[e] < 0+EDGE_THRESHOLD: #Selection des arretes "d'interet" (dont la correlation est pertinente)
       graphCopy.delEdge(e)
   #clustering
   params = tlp.getDefaultPluginParameters('MCL Clustering', graphCopy)
