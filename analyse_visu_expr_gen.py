@@ -28,8 +28,11 @@ from math import *
 
 # The main(graph) function must be defined 
 # to run the script on the current graph
-BASESIZE=1.0
-EDGE_THRESHOLD=1.0
+
+#Taille initiale d'un node
+BASESIZE = 1.0
+#Valeur du bornage des niveau d'expression
+EDGE_THRESHOLD = 0.5
 
 #PARTIE 1 : fonctions
 def setNodeLabelAndSize(lab,locus,size,viewSize,node):
@@ -117,6 +120,7 @@ def placeHeatMapLine(gr,pos,nodeList):
   layout = gr.getLayoutProperty('viewLayout')
   metric = gr.getDoubleProperty('viewMetric')
   color = gr.getColorProperty('viewColor')
+  #Add this part in order to add a column corresponding to the label
   """size[nodeList[pos]] = tlp.Size(1.,1.,0.)
   layout[nodeList[pos]] = tlp.Coord(0.,pos,0.)
   color[nodeList[pos]] = tlp.Color(255,255,255)"""
@@ -173,7 +177,7 @@ def main(graph):
   viewTgtAnchorShape = graph.getIntegerProperty("viewTgtAnchorShape")
   viewTgtAnchorSize = graph.getSizeProperty("viewTgtAnchorSize")
   updateVisualization(centerViews = True)
-  #
+  #clusterized autorise le tri de la heatMap par partition seulement si partitionnement
   clusterized = False
   
   #PARTIE 1
@@ -183,9 +187,10 @@ def main(graph):
     setEdgesNodesColors(graph, n, Positive, Negative, viewColor, 
     viewShape, viewTgtAnchorShape)
   
+  
   graphTmp = graph.addCloneSubGraph("Parties 2 et 3")
   
-  """
+  
   #PARTIE 2
   #creation du nouveau graphe  
   graphCopy = graphTmp.addCloneSubGraph("partitionnement")
@@ -198,8 +203,8 @@ def main(graph):
       setEdgesWeight(graphCopy,nodeList[i],nodeList[j],poids)
   #suppression des arretes "superflues"
   for e in graphCopy.getEdges():
-    poids[e] = 1-poids[e] #placing values between 0 and 2
-    if poids[e] > 0.5 and poids[e] < 1.5:
+    #poids[e] = 1-poids[e] #placing values between 0 and 2
+    if poids[e] > 0-EDGE_THRESHOLD and poids[e] < 0+EDGE_THRESHOLD: #Selection des arretes d'interet
       graphCopy.delEdge(e)
   #clustering  
   params = tlp.getDefaultPluginParameters('MCL Clustering', graphCopy)
@@ -207,7 +212,7 @@ def main(graph):
   clusterValue = graphCopy.getDoubleProperty('clusterValue')
   #clusterized becomes True if the algorithm processes properly
   clusterized = graphCopy.applyDoubleAlgorithm('MCL Clustering', clusterValue, params)
-  """
+  
   
   #PARTIE 3
   #creation d'un nouveau graphe pour la heatmap
@@ -224,4 +229,3 @@ def main(graph):
   colorMappingParams['color scale'] = tlpgui.ColorScalesManager.getColorScale('BiologicalHeatMap')
   colorMappingParams['input property'] = graphHeat.getDoubleProperty("viewMetric")
   success = graphHeat.applyColorAlgorithm('Color Mapping', colorMappingParams)
-  print(colorMappingParams['color scale'])
