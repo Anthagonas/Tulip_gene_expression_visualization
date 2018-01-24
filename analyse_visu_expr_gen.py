@@ -221,9 +221,9 @@ def main(graph):
   params = tlp.getDefaultPluginParameters('MCL Clustering', graphCopy)
   params["weights"]=poids
   clusterValue = graphCopy.getDoubleProperty('clusterValue')
-  #clusterized becomes True if the algorithm processes properly
+  #clusterized == True quand le partitionnement s'effectue normalement
   clusterized = graphCopy.applyDoubleAlgorithm('MCL Clustering', clusterValue, params)
-  print("Fin du partitionnement, "+max(clusterValue)+" clusters found")
+  print("Fin du partitionnement, "+str(int(clusterValue.getNodeDoubleMax()))+" clusters found")
   
   #PARTIE 3
   #creation d'un nouveau graphe pour la heatmap
