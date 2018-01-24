@@ -203,8 +203,8 @@ def main(graph):
       setEdgesWeight(graphCopy,nodeList[i],nodeList[j],poids)
   #suppression des arretes "superflues"
   for e in graphCopy.getEdges():
-    #poids[e] = 1-poids[e] #placing values between 0 and 2
-    if poids[e] > 0-EDGE_THRESHOLD and poids[e] < 0+EDGE_THRESHOLD: #Selection des arretes d'interet
+    poids[e] = 1-poids[e] #placement des valeurs de correlations entre 0 et 2 ( 0 = forte correlation positive, 1 = abs de correlation, 2 = forte correlation negative)
+    if poids[e] > 1-EDGE_THRESHOLD and poids[e] < 1+EDGE_THRESHOLD: #Selection des arretes "d'interet" (dont la correlation est pertinente)
       graphCopy.delEdge(e)
   #clustering  
   params = tlp.getDefaultPluginParameters('MCL Clustering', graphCopy)
