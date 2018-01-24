@@ -32,7 +32,7 @@ from math import *
 #Taille initiale d'un node
 BASESIZE = 1.0
 #Valeur du bornage des niveau d'expression
-EDGE_THRESHOLD = 0.5
+EDGE_THRESHOLD = 0.7
 
 #PARTIE 1 : fonctions
 def setNodeLabelAndSize(lab,locus,size,viewSize,node):
@@ -209,14 +209,13 @@ def main(graph):
   #ajout des poids des arretes  
   print("Calcul du poids des arretes")
   poids = graphCopy.getDoubleProperty("poids");
-  for i in range(len(nodeList[::10])):
-    for j in range(len(nodeList[i+10::10])):
+  for i in range(len(nodeList)):
+    for j in range(len(nodeList[i+1::])):
       setEdgesWeight(graphCopy,nodeList[i],nodeList[j],poids)
   #suppression des arretes "superflues"
   print("Selection des arretes d'interet")
   for e in graphCopy.getEdges():
-    #poids[e] = 1-poids[e] #placement des valeurs de correlations entre 0 et 2 ( 0 = forte correlation positive, 1 = abs de correlation, 2 = forte correlation negative)
-    if poids[e] > 0-EDGE_THRESHOLD and poids[e] < 0+EDGE_THRESHOLD: #Selection des arretes "d'interet" (dont la correlation est pertinente)
+    if poids[e] < EDGE_THRESHOLD: #Selection des arretes "d'interet" (dont la correlation est pertinente)
       graphCopy.delEdge(e)
   #clustering
   params = tlp.getDefaultPluginParameters('MCL Clustering', graphCopy)
@@ -224,7 +223,7 @@ def main(graph):
   clusterValue = graphCopy.getDoubleProperty('clusterValue')
   #clusterized becomes True if the algorithm processes properly
   clusterized = graphCopy.applyDoubleAlgorithm('MCL Clustering', clusterValue, params)
-  print("Fin du partitionnement")
+  print("Fin du partitionnement, "+max(clusterValue)+" clusters found")
   
   #PARTIE 3
   #creation d'un nouveau graphe pour la heatmap
