@@ -112,13 +112,21 @@ def setEdgesWeight(graph,n,other,poids):
   poids[graph.addEdge(n,other)]= getPearsonValue(graph,n,other)
   
 #PARTIE 3 : fonction 
-def placeHeatMapLine(graph,nodeList,n,size,layout,metric):
+def placeHeatMapLine(gr,pos,nodeList):
+  size = gr.getSizeProperty('viewSize')
+  layout = gr.getLayoutProperty('viewLayout')
+  metric = gr.getDoubleProperty('viewMetric')
+  color = gr.getColorProperty('viewColor')
+  """size[nodeList[pos]] = tlp.Size(1.,1.,0.)
+  layout[nodeList[pos]] = tlp.Coord(0.,pos,0.)
+  color[nodeList[pos]] = tlp.Color(255,255,255)"""
   for i in range(1,18):
-    node = graph.addNode()
+    node = gr.addNode()
     size[node] = tlp.Size(1.,1.,0.)
-    layout[node] = tlp.Coord(i,n,0.)
-    metric[node] = graph.getDoubleProperty("tp{} s".format(i))[nodeList[n]]
-  
+    layout[node] = tlp.Coord(i,pos,0.)
+    metric[node] = gr.getDoubleProperty("tp{} s".format(i))[nodeList[pos]]
+    color[node] = tlp.Color(255-(metric[node]*255/15),metric[node]*255/15,0.0)
+  gr.delNode(nodeList[pos])
 
 #MAIN
 def main(graph): 
@@ -165,6 +173,8 @@ def main(graph):
   viewTgtAnchorShape = graph.getIntegerProperty("viewTgtAnchorShape")
   viewTgtAnchorSize = graph.getSizeProperty("viewTgtAnchorSize")
   updateVisualization(centerViews = True)
+  #
+  clusterized = False
   
   #PARTIE 1
   applyForce(graph, viewLayout, "FM^3 (OGDF)")
@@ -173,10 +183,12 @@ def main(graph):
     setEdgesNodesColors(graph, n, Positive, Negative, viewColor, 
     viewShape, viewTgtAnchorShape)
   
+  graphTmp = graph.addCloneSubGraph("Parties 2 et 3")
+  
   """
   #PARTIE 2
   #creation du nouveau graphe  
-  graphCopy = graph.addCloneSubGraph("partitionnement")
+  graphCopy = graphTmp.addCloneSubGraph("partitionnement")
   graphCopy.delEdges(graphCopy.getEdges())
   nodeList = graphCopy.nodes()
   #ajout des poids des arretes  
@@ -193,24 +205,20 @@ def main(graph):
   params = tlp.getDefaultPluginParameters('MCL Clustering', graphCopy)
   params["weights"]=poids
   clusterValue = graphCopy.getDoubleProperty('clusterValue')
-  success = graphCopy.applyDoubleAlgorithm('MCL Clustering', clusterValue, params)
+  #clusterized becomes True if the algorithm processes properly
+  clusterized = graphCopy.applyDoubleAlgorithm('MCL Clustering', clusterValue, params)
   """
   
   #PARTIE 3
   #creation d'un nouveau graphe pour la heatmap
-  graphHeat = graph.addCloneSubGraph("heat map")
-  graphHeat.delEdges(graphHeat.getEdges())
-  nodeList = graphHeat.nodes()
-  layoutHeat = graphHeat.getLayoutProperty("viewLayout")
-  sizeHeat = graphHeat.getSizeProperty("viewSize")
-  colorHeat = graphHeat.getColorProperty("viewColor")
-  metricHeat = graphHeat.getDoubleProperty("viewMetric")
-  levelHeat = graphHeat.getDoubleProperty("Expression Level")
-  for n in range(len(nodeList)):
-    sizeHeat[nodeList[n]] = tlp.Size(1.,1.,0.)
-    layoutHeat[nodeList[n]] = tlp.Coord(0.,n,0.)
-    placeHeatMapLine(graphHeat,nodeList,n,sizeHeat,layoutHeat,levelHeat)
+  graphHeat = graphTmp.addCloneSubGraph("heat map")
+  graphHeat.delEdges(graphHeat.getEdges())  
+  nodeListHeat = graphHeat.nodes()
+  #Tri des nodes en fonction des clusters
+  if clusterized :
+    nodeListHeat.sort(key=lambda x: clusterValue[x], reverse=False)
+  #placement des nodes pour la Heat Map
+  for i in range(len(nodeListHeat)):
+    placeHeatMapLine(graphHeat,i,nodeListHeat)
     
-  for n in range(len(nodeList)):
-    colorHeat[nodeList[n]] = tlp.Color(255,255,255)
   
