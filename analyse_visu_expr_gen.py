@@ -32,7 +32,7 @@ from math import *
 #Taille initiale d'un node
 BASESIZE = 1.0
 #Valeur du bornage des niveau d'expression
-EDGE_THRESHOLD = 0.7
+EDGE_THRESHOLD = 0.5
 
 #PARTIE 1 : fonctions
 def setNodeLabelAndSize(lab,locus,size,viewSize,node):
@@ -215,7 +215,7 @@ def main(graph):
   #suppression des arretes "superflues"
   print("Selection des arretes d'interet")
   for e in graphCopy.getEdges():
-    if poids[e] < EDGE_THRESHOLD: #Selection des arretes "d'interet" (dont la correlation est pertinente)
+    if poids[e] > EDGE_THRESHOLD: #Selection des arretes "d'interet" (dont la correlation est pertinente)
       graphCopy.delEdge(e)
   #clustering
   params = tlp.getDefaultPluginParameters('MCL Clustering', graphCopy)
@@ -223,7 +223,7 @@ def main(graph):
   clusterValue = graphCopy.getDoubleProperty('clusterValue')
   #clusterized == True quand le partitionnement s'effectue normalement
   clusterized = graphCopy.applyDoubleAlgorithm('MCL Clustering', clusterValue, params)
-  print("Fin du partitionnement, "+str(int(clusterValue.getNodeDoubleMax()))+" clusters found")
+  print("Fin du partitionnement, "+str(1+int(clusterValue.getNodeDoubleMax()))+" clusters found")
   
   #PARTIE 3
   #creation d'un nouveau graphe pour la heatmap
