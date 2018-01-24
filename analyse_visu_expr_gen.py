@@ -224,3 +224,4 @@ def main(graph):
   colorMappingParams['color scale'] = tlpgui.ColorScalesManager.getColorScale('BiologicalHeatMap')
   colorMappingParams['input property'] = graphHeat.getDoubleProperty("viewMetric")
   success = graphHeat.applyColorAlgorithm('Color Mapping', colorMappingParams)
+  print(colorMappingParams['color scale'])
