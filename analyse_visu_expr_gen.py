@@ -125,7 +125,7 @@ def placeHeatMapLine(gr,pos,nodeList):
     size[node] = tlp.Size(1.,1.,0.)
     layout[node] = tlp.Coord(i,pos,0.)
     metric[node] = gr.getDoubleProperty("tp{} s".format(i))[nodeList[pos]]
-    color[node] = tlp.Color(255-(metric[node]*255/15),metric[node]*255/15,0.0)
+  #Delete the nodes coming from the original graph
   gr.delNode(nodeList[pos])
 
 #MAIN
@@ -220,5 +220,7 @@ def main(graph):
   #placement des nodes pour la Heat Map
   for i in range(len(nodeListHeat)):
     placeHeatMapLine(graphHeat,i,nodeListHeat)
-    
-  
+  colorMappingParams = tlp.getDefaultPluginParameters('Color Mapping', graphHeat)
+  colorMappingParams['color scale'] = tlpgui.ColorScalesManager.getColorScale('BiologicalHeatMap')
+  colorMappingParams['input property'] = graphHeat.getDoubleProperty("viewMetric")
+  success = graphHeat.applyColorAlgorithm('Color Mapping', colorMappingParams)
