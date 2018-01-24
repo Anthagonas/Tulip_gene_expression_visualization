@@ -60,6 +60,7 @@ def applyForce(graph,layout,force="FM^3 (OGDF)"):
   param={"Unit edge length":1}
   graph.applyLayoutAlgorithm(force,layout,param)
   
+  
 #PARTIE 2 : fonctions
 def getExpressionXY(graph,nX,nY,mean_X,mean_Y):  
   """
@@ -119,18 +120,23 @@ def placeHeatMapLine(gr,pos,nodeList):
   size = gr.getSizeProperty('viewSize')
   layout = gr.getLayoutProperty('viewLayout')
   metric = gr.getDoubleProperty('viewMetric')
-  color = gr.getColorProperty('viewColor')
-  #Add this part in order to add a column corresponding to the label
-  """size[nodeList[pos]] = tlp.Size(1.,1.,0.)
-  layout[nodeList[pos]] = tlp.Coord(0.,pos,0.)
-  color[nodeList[pos]] = tlp.Color(255,255,255)"""
   for i in range(1,18):
     node = gr.addNode()
     size[node] = tlp.Size(1.,1.,0.)
     layout[node] = tlp.Coord(i,pos,0.)
     metric[node] = gr.getDoubleProperty("tp{} s".format(i))[nodeList[pos]]
-  #Delete the nodes coming from the original graph
+  #Suppression des nodes originaux (pour la coloration a venir)
   gr.delNode(nodeList[pos])
+
+def placeGeneLabel(gr,pos,nodeList):
+  size = gr.getSizeProperty('viewSize')
+  layout = gr.getLayoutProperty('viewLayout')
+  color = gr.getColorProperty('viewColor')
+  gr.addNode(nodeList[pos])
+  size[nodeList[pos]] = tlp.Size(1.,1.,0.)
+  layout[nodeList[pos]] = tlp.Coord(0.,pos,0.)
+  color[nodeList[pos]] = tlp.Color(255,255,255)
+  
 
 #MAIN
 def main(graph): 
@@ -181,51 +187,62 @@ def main(graph):
   clusterized = False
   
   #PARTIE 1
-  applyForce(graph, viewLayout, "FM^3 (OGDF)")
+  print("Visualisation du graphe initial")
   for n in graph.getNodes():
     setNodeLabelAndSize(viewLabel,Locus,BASESIZE,viewSize,n)
     setEdgesNodesColors(graph, n, Positive, Negative, viewColor, 
     viewShape, viewTgtAnchorShape)
-  
+  print("Application de l'algorithme de force")
+  applyForce(graph, viewLayout, "FM^3 (OGDF)")
   
   graphTmp = graph.addCloneSubGraph("Parties 2 et 3")
   
-  
   #PARTIE 2
-  #creation du nouveau graphe  
+  #creation du nouveau graphe
+  print("Creation du graphe complet")
   graphCopy = graphTmp.addCloneSubGraph("partitionnement")
   graphCopy.delEdges(graphCopy.getEdges())
   nodeList = graphCopy.nodes()
   #ajout des poids des arretes  
+  print("Calcul du poids des arretes")
   poids = graphCopy.getDoubleProperty("poids");
   for i in range(len(nodeList)):
     for j in range(len(nodeList[i+1::])):
       setEdgesWeight(graphCopy,nodeList[i],nodeList[j],poids)
   #suppression des arretes "superflues"
+  print("Selection des arretes d'interet")
   for e in graphCopy.getEdges():
     poids[e] = 1-poids[e] #placement des valeurs de correlations entre 0 et 2 ( 0 = forte correlation positive, 1 = abs de correlation, 2 = forte correlation negative)
     if poids[e] > 1-EDGE_THRESHOLD and poids[e] < 1+EDGE_THRESHOLD: #Selection des arretes "d'interet" (dont la correlation est pertinente)
       graphCopy.delEdge(e)
-  #clustering  
+  #clustering
   params = tlp.getDefaultPluginParameters('MCL Clustering', graphCopy)
   params["weights"]=poids
   clusterValue = graphCopy.getDoubleProperty('clusterValue')
   #clusterized becomes True if the algorithm processes properly
   clusterized = graphCopy.applyDoubleAlgorithm('MCL Clustering', clusterValue, params)
-  
+  print("Fin du partitionnement")
   
   #PARTIE 3
   #creation d'un nouveau graphe pour la heatmap
+  print("Creation du graphe de Heat Map")
   graphHeat = graphTmp.addCloneSubGraph("heat map")
   graphHeat.delEdges(graphHeat.getEdges())  
   nodeListHeat = graphHeat.nodes()
   #Tri des nodes en fonction des clusters
+  print("Triage des genes par partitions")
   if clusterized :
     nodeListHeat.sort(key=lambda x: clusterValue[x], reverse=False)
   #placement des nodes pour la Heat Map
+  print("Positionnement de la HeatMap")
   for i in range(len(nodeListHeat)):
     placeHeatMapLine(graphHeat,i,nodeListHeat)
+  print("Coloration de la HeatMap")
   colorMappingParams = tlp.getDefaultPluginParameters('Color Mapping', graphHeat)
   colorMappingParams['color scale'] = tlpgui.ColorScalesManager.getColorScale('BiologicalHeatMap')
   colorMappingParams['input property'] = graphHeat.getDoubleProperty("viewMetric")
   success = graphHeat.applyColorAlgorithm('Color Mapping', colorMappingParams)
+  print("Ajoute du noms des gènes")
+  for i in range(len(nodeListHeat)):
+    placeGeneLabel(graphHeat,i,nodeListHeat)
+  print("Fin du script")
