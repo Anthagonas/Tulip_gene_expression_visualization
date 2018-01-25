@@ -145,7 +145,7 @@ def placeSegmentLine(gr,pos):
   layout = gr.getLayoutProperty('viewLayout')  
   color = gr.getColorProperty('viewColor')
   segment = gr.addNode()
-  size[segment] = tlp.Size(0.2,17.0,0)
+  size[segment] = tlp.Size(17.0,0.2,0)
   layout[segment] = tlp.Coord(0.,pos+0.49,0.)
   color[segment] = tlp.Color(0.,0.,0.)
 
