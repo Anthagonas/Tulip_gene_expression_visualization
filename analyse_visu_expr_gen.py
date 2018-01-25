@@ -255,6 +255,7 @@ def main(graph):
   print("Ajoute du noms des gènes et segmentation des clusters")
   for i in range(len(nodeListHeat)):
     placeGeneLabel(graphHeat,i,nodeListHeat)
+    #Placer une ligne pour délimiter 2 partitions
     if clusterized and i > 0 and clusterValue[nodeList[i]] != clusterValue[nodeList[i-1]] :
       placeSegmentLine(graphHeat,i)
   print("Fin du script")
