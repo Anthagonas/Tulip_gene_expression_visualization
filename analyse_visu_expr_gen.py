@@ -119,6 +119,9 @@ def setEdgesWeight(graph,n,other,poids):
   
 #PARTIE 3 : fonction 
 def placeHeatMapLine(gr,pos,nodeList):
+  """
+  Places 17 nodes in line corresponding to the tpX s values of the given node
+  """
   size = gr.getSizeProperty('viewSize')
   layout = gr.getLayoutProperty('viewLayout')
   metric = gr.getDoubleProperty('viewMetric')
@@ -131,11 +134,14 @@ def placeHeatMapLine(gr,pos,nodeList):
   gr.delNode(nodeList[pos])
 
 def placeGeneLabel(gr,pos,nodeList):
+  """
+  Adds to the heatMap line the corresponding gene Label
+  """
   size = gr.getSizeProperty('viewSize')
   layout = gr.getLayoutProperty('viewLayout')
   color = gr.getColorProperty('viewColor')
   label = gr.getStringProperty("viewLabel")
-  #Creation d'un node "légende"
+  #Creation d'un node "legende"
   new_node = gr.addNode()
   size[new_node] = tlp.Size(1.,1.,0.)
   layout[new_node] = tlp.Coord(0.,pos,0.)
@@ -143,6 +149,10 @@ def placeGeneLabel(gr,pos,nodeList):
   label[new_node] = label[nodeList[pos]]
 
 def placeSegmentLine(gr,pos,segmSize):
+  """
+  Places black nodes on the heatmap, 
+  this helps visualizing the different clusters
+  """
   size = gr.getSizeProperty('viewSize')
   layout = gr.getLayoutProperty('viewLayout')  
   color = gr.getColorProperty('viewColor')
@@ -201,6 +211,7 @@ def main(graph):
   
   #PARTIE 1
   print("Visualisation du graphe initial")
+  #Modification de la taille et de la couleur des nodes et edges
   for n in graph.getNodes():
     setNodeLabelAndSize(viewLabel,Locus,BASESIZE,viewSize,n)
     setEdgesNodesColors(graph, n, Positive, Negative, viewColor, 
@@ -208,26 +219,29 @@ def main(graph):
   print("Application de l'algorithme de force")
   applyForce(graph, viewLayout, "FM^3 (OGDF)")
   
+  #Creation d'un graphe clone "intermediaire" protegeant le graphe initial de la modification de proprietes
   graphTmp = graph.addCloneSubGraph("Parties 2 et 3")
   
   #PARTIE 2
   #creation du nouveau graphe
   print("Creation du graphe complet")
   graphCopy = graphTmp.addCloneSubGraph("partitionnement")
+  #Suppression des aretes existantes pour creer un graphe complet
   graphCopy.delEdges(graphCopy.getEdges())
   nodeList = graphCopy.nodes()
-  #ajout des poids des arretes  
-  print("Calcul du poids des arretes")
+  #ajout des poids des aretes  
+  print("Calcul du poids des aretes")
   poids = graphCopy.getDoubleProperty("poids");
+  #Creation d'aretes entre chaque nodes (graphe complet)
   for i in range(len(nodeList)):
     for j in range(len(nodeList[i+1::])):
       setEdgesWeight(graphCopy,nodeList[i],nodeList[j],poids)
-  #suppression des arretes "superflues"
-  print("Selection des arretes d'interet")
+  #suppression des aretes "superflues"
+  print("Selection des aretes d'interet")
   for e in graphCopy.getEdges():
-    if poids[e] > -EDGE_THRESHOLD and poids[e] < EDGE_THRESHOLD: #Selection des arretes "d'interet" (dont la correlation est pertinente)
+    if poids[e] < EDGE_THRESHOLD: #Selection des aretes "d'interet" (dont la correlation est pertinente)
       graphCopy.delEdge(e)
-  #clustering
+  #partitionnement
   params = tlp.getDefaultPluginParameters('MCL Clustering', graphCopy)
   params["weights"]=poids
   clusterValue = graphCopy.getDoubleProperty('clusterValue')
@@ -245,11 +259,12 @@ def main(graph):
   print("Triage des genes par partitions")
   if clusterized :
     nodeListHeat.sort(key=lambda x: clusterValue[x], reverse=False)
-  #placement des nodes pour la Heat Map
+  #placement des nodes pour la HeatMap
   print("Positionnement de la HeatMap")
   for i in range(len(nodeListHeat)):
     placeHeatMapLine(graphHeat,i,nodeListHeat)
   print("Coloration de la HeatMap")
+  #Coloration de la HeatMap
   colorMappingParams = tlp.getDefaultPluginParameters('Color Mapping', graphHeat)
   colorMappingParams['color scale'] = tlpgui.ColorScalesManager.getColorScale('BiologicalHeatMap')
   colorMappingParams['input property'] = graphHeat.getDoubleProperty("viewMetric")
@@ -257,7 +272,7 @@ def main(graph):
   print("Ajoute du noms des gènes et segmentation des clusters")
   for i in range(len(nodeListHeat)):
     placeGeneLabel(graphHeat,i,nodeListHeat)
-    #Placer une ligne pour délimiter 2 partitions
+    #Placer une ligne pour délimiter 2 groupes
     if clusterized and i > 0 and clusterValue[nodeListHeat[i]] != clusterValue[nodeListHeat[i-1]] :
       placeSegmentLine(graphHeat,i,SEGMENT_SIZE)
   print("Fin du script")
