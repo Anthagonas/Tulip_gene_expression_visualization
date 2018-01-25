@@ -139,7 +139,15 @@ def placeGeneLabel(gr,pos,nodeList):
   layout[new_node] = tlp.Coord(0.,pos,0.)
   color[new_node] = tlp.Color(255,255,255)
   label[new_node] = label[nodeList[pos]]
-  
+
+def placeSegmentLine(gr,pos):
+  size = gr.getSizeProperty('viewSize')
+  layout = gr.getLayoutProperty('viewLayout')  
+  color = gr.getColorProperty('viewColor')
+  segment = gr.addNode()
+  size[segment] = tlp.Size(0.2,17.0,0)
+  layout[segment] = tlp.Coord(0.,pos+0.49,0.)
+  color[segment] = tlp.Color(0.,0.,0.)
 
 #MAIN
 def main(graph): 
@@ -244,7 +252,9 @@ def main(graph):
   colorMappingParams['color scale'] = tlpgui.ColorScalesManager.getColorScale('BiologicalHeatMap')
   colorMappingParams['input property'] = graphHeat.getDoubleProperty("viewMetric")
   success = graphHeat.applyColorAlgorithm('Color Mapping', colorMappingParams)
-  print("Ajoute du noms des gènes")
+  print("Ajoute du noms des gènes et segmentation des clusters")
   for i in range(len(nodeListHeat)):
     placeGeneLabel(graphHeat,i,nodeListHeat)
+    if clusterized and i > 0 and clusterValue[nodeList[i]] != clusterValue[nodeList[i-1]] :
+      placeSegmentLine(graphHeat,i)
   print("Fin du script")
