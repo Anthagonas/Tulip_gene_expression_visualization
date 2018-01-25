@@ -32,7 +32,7 @@ from math import *
 #Taille initiale d'un node
 BASESIZE = 1.0
 #Valeur du bornage des niveau d'expression
-EDGE_THRESHOLD = 0.5
+EDGE_THRESHOLD = 0.6
 
 #PARTIE 1 : fonctions
 def setNodeLabelAndSize(lab,locus,size,viewSize,node):
