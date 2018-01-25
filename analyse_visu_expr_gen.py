@@ -33,6 +33,8 @@ from math import *
 BASESIZE = 1.0
 #Valeur du bornage des niveau d'expression
 EDGE_THRESHOLD = 0.6
+#Taille des lignes de separation entre les partitions (voir partie 3)
+SEGMENT_SIZE = 8.0
 
 #PARTIE 1 : fonctions
 def setNodeLabelAndSize(lab,locus,size,viewSize,node):
@@ -140,13 +142,13 @@ def placeGeneLabel(gr,pos,nodeList):
   color[new_node] = tlp.Color(255,255,255)
   label[new_node] = label[nodeList[pos]]
 
-def placeSegmentLine(gr,pos):
+def placeSegmentLine(gr,pos,segmSize):
   size = gr.getSizeProperty('viewSize')
   layout = gr.getLayoutProperty('viewLayout')  
   color = gr.getColorProperty('viewColor')
   segment = gr.addNode()
-  size[segment] = tlp.Size(17.0,0.2,0)
-  layout[segment] = tlp.Coord(0.,pos+0.49,0.)
+  size[segment] = tlp.Size(segmSize,0.2,0)
+  layout[segment] = tlp.Coord(-segmSize/2.0,pos-0.49,0.)
   color[segment] = tlp.Color(0.,0.,0.)
 
 #MAIN
@@ -256,6 +258,6 @@ def main(graph):
   for i in range(len(nodeListHeat)):
     placeGeneLabel(graphHeat,i,nodeListHeat)
     #Placer une ligne pour délimiter 2 partitions
-    if clusterized and i > 0 and clusterValue[nodeList[i]] != clusterValue[nodeList[i-1]] :
-      placeSegmentLine(graphHeat,i)
+    if clusterized and i > 0 and clusterValue[nodeListHeat[i]] != clusterValue[nodeListHeat[i-1]] :
+      placeSegmentLine(graphHeat,i,SEGMENT_SIZE)
   print("Fin du script")
