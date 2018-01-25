@@ -225,7 +225,7 @@ def main(graph):
   #suppression des arretes "superflues"
   print("Selection des arretes d'interet")
   for e in graphCopy.getEdges():
-    if poids[e] < EDGE_THRESHOLD: #Selection des arretes "d'interet" (dont la correlation est pertinente)
+    if poids[e] > -EDGE_THRESHOLD and poids[e] < EDGE_THRESHOLD: #Selection des arretes "d'interet" (dont la correlation est pertinente)
       graphCopy.delEdge(e)
   #clustering
   params = tlp.getDefaultPluginParameters('MCL Clustering', graphCopy)
